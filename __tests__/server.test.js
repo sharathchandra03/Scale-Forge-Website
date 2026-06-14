@@ -109,3 +109,21 @@ describe('POST /submit – error handling', () => {
     expect(res.body.message).toBe('Server error. Please try again.');
   });
 });
+
+describe('GET /blog – public page routing', () => {
+  test('serves the standalone blog page', async () => {
+    const res = await request(app).get('/blog');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/html/);
+    expect(res.text).toContain('Platoons X Blog');
+  });
+
+  test('serves blog post routes from the same page', async () => {
+    const res = await request(app).get('/blog/sample-post');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/html/);
+    expect(res.text).toContain('Platoons X Blog');
+  });
+});

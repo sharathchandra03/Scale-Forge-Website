@@ -137,6 +137,7 @@
           <li><a href="#services">Services</a></li>
           <li><a href="#why">Why Us</a></li>
           <li><a href="#automation">AI</a></li>
+          <li><a href="/blog">Blog</a></li>
           <li><a href="#team">Team</a></li>
           <li><a href="#faq">FAQ</a></li>
           <li><a href="#contact">Contact</a></li>
@@ -161,6 +162,8 @@
         style="font-family:var(--font-d);font-size:1.8rem;font-weight:800;color:var(--text)">Why Us</a>
       <a href="#automation" onclick="toggleMobile()"
         style="font-family:var(--font-d);font-size:1.8rem;font-weight:800;color:var(--text)">AI Automation</a>
+      <a href="/blog" onclick="toggleMobile()"
+        style="font-family:var(--font-d);font-size:1.8rem;font-weight:800;color:var(--text)">Blog</a>
       <a href="#team" onclick="toggleMobile()"
         style="font-family:var(--font-d);font-size:1.8rem;font-weight:800;color:var(--text)">Team</a>
       <a href="#faq" onclick="toggleMobile()"
@@ -268,6 +271,50 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── BLOG ─── -->
+  <section class="blog" id="blog-section">
+    <div class="container">
+      <div class="blog-head">
+        <div>
+          <div class="section-label reveal">Blog</div>
+          <h2 class="section-title reveal">Ideas Worth Publishing.</h2>
+          <p class="section-sub reveal">Latest SEO notes, campaign takeaways, and content playbooks from the Platoons X team.</p>
+        </div>
+        <a href="/blog" class="blog-more reveal">Open Blog →</a>
+      </div>
+
+      <div class="blog-grid" id="blogHighlights">
+        <article class="blog-card blog-card-placeholder reveal">
+          <div class="blog-cover"><div class="blog-cover-empty">Latest insights</div></div>
+          <div class="blog-body">
+            <div class="blog-meta"><span>Live from admin</span><span>Ready</span></div>
+            <h3>Publish from the admin panel and the latest articles appear here.</h3>
+            <p>This space stays connected to your blog database, so every published post can show up on the homepage automatically.</p>
+            <div class="blog-link">Browse blog <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+          </div>
+        </article>
+        <article class="blog-card blog-card-placeholder reveal">
+          <div class="blog-cover"><div class="blog-cover-empty">Same theme</div></div>
+          <div class="blog-body">
+            <div class="blog-meta"><span>Homepage preview</span><span>Synced</span></div>
+            <h3>Built with the same colours, typography, and motion language as the landing page.</h3>
+            <p>The blog page keeps the brand feel intact while opening each post on its own URL.</p>
+            <div class="blog-link">Open blog page <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+          </div>
+        </article>
+        <article class="blog-card blog-card-placeholder reveal">
+          <div class="blog-cover"><div class="blog-cover-empty">SEO ready</div></div>
+          <div class="blog-body">
+            <div class="blog-meta"><span>Clean URLs</span><span>Public</span></div>
+            <h3>Each article opens on a separate page so you can share, rank, and update posts properly.</h3>
+            <p>Blog entries are rendered from the same backend content records the admin panel edits.</p>
+            <div class="blog-link">Read more <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -1220,6 +1267,7 @@
             <li><a href="#why">About Us</a></li>
             <li><a href="#team">Our Team</a></li>
             <li><a href="#process">How We Work</a></li>
+            <li><a href="/blog">Blog</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
@@ -1243,6 +1291,8 @@
   </footer>
 
   <script src="script.js" defer></script>
+  <!-- Dynamic content from the admin DB (progressive enhancement; static HTML above is the fallback) -->
+  <script src="public-data.js" defer></script>
 
   <!-- SVG gooey filter -->
   <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">

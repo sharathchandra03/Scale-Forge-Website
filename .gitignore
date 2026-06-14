@@ -1,3 +1,31 @@
+# dependencies
 node_modules/
+
+# env files
 .env
+.env.*
+
+# editor / OS noise
+.vscode/
+.DS_Store
+Thumbs.db
+photos/desktop.ini
+
+# local app/db artifacts
 .claude/
+ruvector.db
+*.log
+
+# misc
+coverage/
+*.tgz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# specific files to ignore
+pricing_guide_digital_marketing.html
+BUILD_PLAN.md
+asset-code-pricing.html
+
+

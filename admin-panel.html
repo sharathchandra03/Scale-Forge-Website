@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Platoons X · Admin</title>
+
+  <!-- Same fonts as the public site so the panel feels native -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ─── Design tokens copied from the site's style.css :root ─── */
+    :root {
+      --bg: #07070F;
+      --bg2: #0D0D1A;
+      --surface: #12121F;
+      --surface2: #18182E;
+      --border: rgba(255, 255, 255, 0.07);
+      --border2: rgba(255, 255, 255, 0.13);
+      --orange: #FF5C1A;
+      --orange-glow: rgba(255, 92, 26, 0.22);
+      --purple: #7C3AED;
+      --cyan: #00D4FF;
+      --gold: #F5C518;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #EEEEFF;
+      --text2: #9090B8;
+      --muted: #55557A;
+      --font-d: 'Plus Jakarta Sans', sans-serif;
+      --font-b: 'Inter', sans-serif;
+      --font-a: 'Space Grotesk', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-b);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { color: var(--orange); text-decoration: none; }
+    ::selection { background: var(--orange); color: #fff; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 6px; }
+
+    h1, h2, h3 { font-family: var(--font-d); font-weight: 800; }
+    button { font-family: inherit; cursor: pointer; }
+    input, textarea, select { font-family: inherit; }
+
+    /* ─── Login ─── */
+    .login-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(255,92,26,0.10), transparent 60%);
+    }
+    .login-card {
+      width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 40px 32px;
+    }
+    .login-card .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .login-card .brand img { height: 38px; }
+    .login-card h1 { font-size: 1.5rem; }
+    .login-card p.sub { color: var(--text2); font-size: .9rem; margin-bottom: 26px; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: .8rem; color: var(--text2); margin-bottom: 7px; font-weight: 600; }
+    .field input, .field textarea, .field select {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border2); color: var(--text);
+      border-radius: 10px; padding: 12px 14px; font-size: .92rem; transition: border-color .2s;
+    }
+    .field textarea { resize: vertical; min-height: 90px; }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: var(--orange);
+    }
+    .field .hint { font-size: .72rem; color: var(--muted); margin-top: 5px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--orange); color: #fff; border: none; border-radius: 10px;
+      padding: 12px 20px; font-weight: 700; font-size: .9rem; transition: transform .15s, filter .15s;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn.ghost { background: transparent; border: 1px solid var(--border2); color: var(--text); }
+    .btn.ghost:hover { border-color: var(--orange); color: var(--orange); }
+    .btn.danger { background: var(--red); }
+    .btn.small { padding: 7px 13px; font-size: .8rem; border-radius: 8px; }
+    .btn.full { width: 100%; }
+
+    .alert { padding: 11px 14px; border-radius: 10px; font-size: .85rem; margin-bottom: 16px; display: none; }
+    .alert.show { display: block; }
+    .alert.err { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .alert.ok  { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+
+    /* ─── App shell ─── */
+    .app { display: none; min-height: 100vh; grid-template-columns: 240px 1fr; }
+    .app.show { display: grid; }
+    @media (max-width: 860px) { .app.show { grid-template-columns: 1fr; } }
+
+    .sidebar {
+      background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 14px;
+      display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    @media (max-width: 860px) { .sidebar { position: static; height: auto; } }
+    .sidebar .brand { display: flex; align-items: center; gap: 9px; padding: 6px 10px 18px; }
+    .sidebar .brand img { height: 30px; }
+    .sidebar .brand span { font-family: var(--font-d); font-weight: 800; font-size: 1rem; }
+    .nav-group-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 14px 12px 6px; font-weight: 700; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px;
+      color: var(--text2); font-size: .88rem; font-weight: 500; border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: var(--surface); color: var(--text); }
+    .nav-item.active { background: var(--orange-glow); color: var(--orange); font-weight: 700; }
+    .nav-item .ico { width: 18px; text-align: center; }
+    .nav-item .badge { margin-left: auto; background: var(--orange); color: #fff; font-size: .68rem; padding: 1px 7px; border-radius: 100px; font-weight: 700; }
+    .nav-spacer { flex: 1; }
+
+    .main { padding: 28px 32px 80px; overflow-x: hidden; }
+    @media (max-width: 860px) { .main { padding: 20px 16px 60px; } }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; gap: 16px; flex-wrap: wrap; }
+    .topbar h2 { font-size: 1.6rem; }
+    .topbar .who { font-size: .82rem; color: var(--text2); }
+
+    /* ─── Dashboard cards ─── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+    .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 18px; }
+    .stat-box .n { font-family: var(--font-d); font-size: 2rem; font-weight: 800; }
+    .stat-box .l { color: var(--text2); font-size: .82rem; margin-top: 2px; }
+    .stat-box.accent { border-color: rgba(255,92,26,0.4); background: linear-gradient(180deg, var(--orange-glow), var(--surface)); }
+
+    /* ─── Tables ─── */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
+    .panel-head h3 { font-size: 1.05rem; }
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--text2); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: none; }
+    td.actions { white-space: nowrap; text-align: right; }
+    td .cell-title { font-weight: 600; }
+    td .cell-sub { color: var(--text2); font-size: .8rem; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: .72rem; font-weight: 700; }
+    .pill.published { background: rgba(34,197,94,0.14); color: #86efac; }
+    .pill.draft { background: rgba(144,144,184,0.14); color: var(--text2); }
+    .pill.scheduled { background: rgba(0,212,255,0.14); color: #7dd3fc; }
+    .pill.new { background: rgba(255,92,26,0.16); color: var(--orange); }
+    .pill.contacted { background: rgba(0,212,255,0.14); color: #7dd3fc; }
+    .pill.won { background: rgba(34,197,94,0.14); color: #86efac; }
+    .pill.lost { background: rgba(239,68,68,0.14); color: #fca5a5; }
+    .empty { padding: 40px; text-align: center; color: var(--muted); }
+    .loading { padding: 40px; text-align: center; color: var(--text2); }
+
+    /* ─── Modal / drawer form ─── */
+    .overlay { position: fixed; inset: 0; background: rgba(7,7,15,0.7); backdrop-filter: blur(4px); z-index: 200; display: none; }
+    .overlay.show { display: block; }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 560px; max-width: 100%;
+      background: var(--bg2); border-left: 1px solid var(--border2); z-index: 201;
+      transform: translateX(100%); transition: transform .28s var(--ease, ease); overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .drawer.show { transform: translateX(0); }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg2); z-index: 2; }
+    .drawer-head h3 { font-size: 1.2rem; }
+    .drawer-body { padding: 22px 24px; flex: 1; }
+    .drawer-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; position: sticky; bottom: 0; background: var(--bg2); }
+    .x-btn { background: none; border: none; color: var(--text2); font-size: 1.5rem; line-height: 1; }
+    .x-btn:hover { color: var(--text); }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } }
+    .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .check-row input { width: 18px; height: 18px; accent-color: var(--orange); }
+    .check-row label { font-size: .9rem; color: var(--text); }
+
+    /* feature list editor (pricing) */
+    .feat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .feat-row input[type=text] { flex: 1; }
+    .feat-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); }
+    .feat-row .drag { color: var(--muted); cursor: default; }
+
+    /* rich text editor */
+    .rte-toolbar { display: flex; flex-wrap: wrap; gap: 4px; background: var(--bg2); border: 1px solid var(--border2); border-bottom: none; border-radius: 10px 10px 0 0; padding: 6px; }
+    .rte-toolbar button { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 10px; font-size: .8rem; font-weight: 600; }
+    .rte-toolbar button:hover { border-color: var(--orange); color: var(--orange); }
+    .rte {
+      min-height: 240px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 0 0 10px 10px;
+      padding: 14px 16px; font-size: .92rem; line-height: 1.7; overflow-y: auto;
+    }
+    .rte:focus { outline: none; border-color: var(--orange); }
+    .rte h2 { font-size: 1.3rem; margin: 14px 0 8px; }
+    .rte p { margin: 0 0 10px; }
+    .rte img { max-width: 100%; border-radius: 8px; }
+    .rte a { color: var(--cyan); }
+
+    /* image picker */
+    .img-pick { display: flex; align-items: center; gap: 14px; }
+    .img-pick .preview { width: 84px; height: 84px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border2); object-fit: cover; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: .7rem; }
+
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+    .media-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .media-cell img { width: 100%; height: 100px; object-fit: cover; display: block; }
+    .media-cell .meta { padding: 7px 9px; font-size: .7rem; color: var(--text2); display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .media-cell .meta .fn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120%);
+      background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+      padding: 12px 20px; border-radius: 10px; font-size: .88rem; z-index: 300; transition: transform .3s; max-width: 90vw;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.ok { border-color: rgba(34,197,94,0.4); }
+    .toast.err { border-color: rgba(239,68,68,0.4); }
+
+    .settings-bar { position: fixed; bottom: 14px; right: 18px; font-size: .68rem; color: var(--muted); z-index: 50; }
+    .settings-bar a { color: var(--muted); }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─────────────── LOGIN ─────────────── -->
+  <div class="login-wrap" id="loginView">
+    <div class="login-card">
+      <div class="brand">
+        <img src="photos/Logo .png" alt="Platoons X" onerror="this.style.display='none'">
+      </div>
+      <h1>Admin Panel</h1>
+      <p class="sub">Sign in to manage your website content.</p>
+
+      <div class="alert err" id="loginErr"></div>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="lg-user">Username</label>
+          <input id="lg-user" type="text" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="lg-pass">Password</label>
+          <input id="lg-pass" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn full" type="submit" id="lg-btn">Sign In</button>
+      </form>
+
+      <details style="margin-top:18px">
+        <summary style="color:var(--text2);font-size:.78rem;cursor:pointer">Advanced · API endpoint</summary>
+        <div class="field" style="margin-top:10px">
+          <input id="lg-api" type="text" placeholder="Leave blank for same server">
+          <div class="hint">Only change if the API runs on a different host/port.</div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ─────────────── APP ─────────────── -->
+  <div class="app" id="appView">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="photos/Logo .png" alt="" onerror="this.style.display='none'">
+        <span>Admin</span>
+      </div>
+      <nav id="navList"></nav>
+      <div class="nav-spacer"></div>
+      <button class="nav-item" onclick="window.open('/','_blank')"><span class="ico">🌐</span> View Site</button>
+      <button class="nav-item" id="logoutBtn"><span class="ico">⎋</span> Sign Out</button>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h2 id="viewTitle">Dashboard</h2>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="who" id="whoami"></span>
+          <button class="btn small" id="newBtn" style="display:none">+ New</button>
+        </div>
+      </div>
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <!-- Drawer form -->
+  <div class="overlay" id="overlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-head">
+      <h3 id="drawerTitle">Edit</h3>
+      <button class="x-btn" id="drawerClose">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot">
+      <button class="btn ghost" id="drawerCancel">Cancel</button>
+      <button class="btn" id="drawerSave">Save</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="settings-bar">Platoons X Admin · <a href="/api/health" target="_blank">health</a></div>
+
+  <script>
+  // ═══════════════ Platoons X Admin — single-file app ═══════════════
+  (function () {
+    'use strict';
+
+    // ── API base: configurable, persisted, default same-origin ──
+    let API_BASE = localStorage.getItem('admin_api_base') || '';
+    const tokenKey = 'admin_token';
+    let TOKEN = localStorage.getItem(tokenKey) || '';
+    let USER = null;
+    let currentSection = 'dashboard';
+
+    const $ = (id) => document.getElementById(id);
+
+    async function api(path, { method = 'GET', body = null, auth = true, raw = false } = {}) {
+      const headers = {};
+      if (!raw) headers['Content-Type'] = 'application/json';
+      if (auth && TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+      const res = await fetch(API_BASE + path, {
+        method, headers,
+        body: raw ? body : (body ? JSON.stringify(body) : null),
+      });
+      let data = null;
+      try { data = await res.json(); } catch (_) {}
+      if (res.status === 401) { doLogout(); throw new Error('Session expired. Please sign in again.'); }
+      if (!res.ok || (data && data.success === false)) {
+        throw new Error((data && data.message) || ('Request failed (' + res.status + ')'));
+      }
+      return data;
+    }
+
+    function toast(msg, kind = 'ok') {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + kind;
+      setTimeout(() => { t.className = 'toast ' + kind; }, 2800);
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ════════════ SECTION CONFIG ════════════
+    // Each section drives its own table columns + form fields. Field types:
+    // text, textarea, number, select, toggle, color, tags, richtext, image, features, datetime
+    const SECTIONS = {
+      services: {
+        title: 'Services', icon: '🧩', api: '/api/services', singular: 'Service',
+        columns: [
+          { key: 'number', label: '#' }, { key: 'title', label: 'Title' },
+          { key: 'metric', label: 'Metric' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'title', label: 'Title', type: 'text', required: true },
+          { key: 'number', label: 'Number (e.g. 01)', type: 'text' },
+          { key: 'icon', label: 'Icon (emoji)', type: 'text' },
+          { key: 'metric', label: 'Metric line', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'tags', label: 'Tags', type: 'tags' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      pricing: {
+        title: 'Pricing', icon: '💰', api: '/api/pricing', singular: 'Plan',
+        columns: [
+          { key: 'tier', label: 'Tier' }, { key: 'price_monthly', label: '₹/mo' },
+          { key: 'is_featured', label: 'Featured', type: 'bool' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'tier', label: 'Tier name', type: 'text', required: true },
+          { key: 'price_monthly', label: 'Monthly price', type: 'text' },
+          { key: 'price_quarterly', label: 'Quarterly price', type: 'text' },
+          { key: 'emi_text', label: 'EMI line', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'cta_label', label: 'Button label', type: 'text' },
+          { key: 'is_featured', label: 'Featured (highlighted) plan', type: 'toggle' },
+          { key: 'features', label: 'Features', type: 'features' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      team: {
+        title: 'Team', icon: '👥', api: '/api/team', singular: 'Member',
+        columns: [
+          { key: 'name', label: 'Name' }, { key: 'role', label: 'Role' },
+          { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'name', label: 'Name', type: 'text', required: true },
+          { key: 'role', label: 'Role / title', type: 'text' },
+          { key: 'initials', label: 'Avatar initials', type: 'text' },
+          { key: 'avatar_color', label: 'Avatar color', type: 'color' },
+          { key: 'description', label: 'Bio', type: 'textarea' },
+          { key: 'linkedin_url', label: 'LinkedIn URL', type: 'text' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      testimonials: {
+        title: 'Testimonials', icon: '⭐', api: '/api/testimonials', singular: 'Testimonial',
+        columns: [
+          { key: 'author_name', label: 'Author' }, { key: 'author_company', label: 'Company' },
+          { key: 'rating', label: '★' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'quote', label: 'Quote', type: 'textarea', required: true },
+          { key: 'author_name', label: 'Author name', type: 'text', required: true },
+          { key: 'author_company', label: 'Company / role', type: 'text' },
+          { key: 'rating', label: 'Rating (1-5)', type: 'number' },
+          { key: 'avatar_initials', label: 'Avatar initials', type: 'text' },
+          { key: 'accent_color', label: 'Accent color', type: 'color' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      faqs: {
+        title: 'FAQs', icon: '❓', api: '/api/faqs', singular: 'FAQ',
+        columns: [
+          { key: 'question', label: 'Question' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'question', label: 'Question', type: 'text', required: true },
+          { key: 'answer', label: 'Answer', type: 'textarea', required: true },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      'process-steps': {
+        title: 'Process Steps', icon: '🔄', api: '/api/process-steps', singular: 'Step',
+        columns: [
+          { key: 'step_number', label: '#' }, { key: 'title', label: 'Title' },
+          { key: 'badge', label: 'Badge' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'step_number', label: 'Step number', type: 'number', required: true },
+          { key: 'title', label: 'Title', type: 'text', required: true },
+          { key: 'badge', label: 'Badge (e.g. Week 1)', type: 'text' },
+          { key: 'emoji', label: 'Emoji', type: 'text' },
+          { key: 'color', label: 'Color (hex)', type: 'text' },
+          { key: 'glow', label: 'Glow (rgba)', type: 'text' },
+          { key: 'related_ids', label: 'Related step numbers', type: 'tags' },
+          { key: 'content', label: 'Content', type: 'textarea' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      'ai-features': {
+        title: 'AI Features', icon: '🤖', api: '/api/ai-features', singular: 'Feature',
+        columns: [
+          { key: 'title', label: 'Title' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'title', label: 'Title', type: 'text', required: true },
+          { key: 'icon', label: 'Icon (emoji or /photos/x.png)', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      stats: {
+        title: 'Stats', icon: '📊', api: '/api/stats', singular: 'Stat',
+        columns: [
+          { key: 'section', label: 'Section' }, { key: 'value', label: 'Value' },
+          { key: 'label', label: 'Label' }, { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'section', label: 'Section', type: 'select', options: ['hero', 'results'] },
+          { key: 'value', label: 'Value (e.g. 200)', type: 'text', required: true },
+          { key: 'suffix', label: 'Suffix (e.g. +, %, ×)', type: 'text' },
+          { key: 'label', label: 'Label', type: 'text', required: true },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      pillars: {
+        title: 'Why-Us Pillars', icon: '🏛️', api: '/api/pillars', singular: 'Pillar',
+        columns: [
+          { key: 'title', label: 'Title' }, { key: 'stat', label: 'Stat' },
+          { key: 'status', label: 'Status', type: 'status' },
+        ],
+        fields: [
+          { key: 'title', label: 'Title', type: 'text', required: true },
+          { key: 'ghost_number', label: 'Ghost number (01..)', type: 'text' },
+          { key: 'icon', label: 'Icon (emoji)', type: 'text' },
+          { key: 'stat', label: 'Stat (e.g. 10×)', type: 'text' },
+          { key: 'sublabel', label: 'Sublabel', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'sort_order', label: 'Sort order', type: 'number' },
+          { key: 'status', label: 'Status', type: 'select', options: ['published', 'draft'] },
+        ],
+      },
+      blog: {
+        title: 'Blog', icon: '📝', api: '/api/blog', singular: 'Post', isBlog: true,
+        columns: [
+          { key: 'title', label: 'Title' }, { key: 'category', label: 'Category' },
+          { key: 'status', label: 'Status', type: 'status' }, { key: 'publish_date', label: 'Publish' },
+        ],
+        fields: [
+          { key: 'title', label: 'Title', type: 'text', required: true },
+          { key: 'slug', label: 'Slug (auto if blank)', type: 'text' },
+          { key: 'excerpt', label: 'Excerpt', type: 'textarea' },
+          { key: 'cover_media_id', label: 'Cover image', type: 'image' },
+          { key: 'body', label: 'Body', type: 'richtext' },
+          { key: 'author', label: 'Author', type: 'text' },
+          { key: 'category', label: 'Category', type: 'text' },
+          { key: 'tags', label: 'Tags', type: 'tags' },
+          { key: 'status', label: 'Status', type: 'select', options: ['draft', 'published', 'scheduled'] },
+          { key: 'publish_date', label: 'Publish date/time', type: 'datetime' },
+        ],
+      },
+      leads: { title: 'Leads', icon: '📥', api: '/api/leads', singular: 'Lead', isLeads: true },
+      media: { title: 'Media', icon: '🖼️', api: '/api/media', singular: 'Media', isMedia: true },
+      settings: { title: 'Settings', icon: '⚙️', api: '/api/settings', singular: 'Setting', isSettings: true },
+    };
+
+    const NAV = [
+      { label: 'OVERVIEW', items: ['dashboard'] },
+      { label: 'CONTENT', items: ['services', 'pricing', 'team', 'testimonials', 'faqs', 'blog'] },
+      { label: 'SECTIONS', items: ['process-steps', 'ai-features', 'stats', 'pillars'] },
+      { label: 'INBOX & ASSETS', items: ['leads', 'media', 'settings'] },
+    ];
+
+    // ════════════ AUTH ════════════
+    async function doLogin(e) {
+      e.preventDefault();
+      const apiVal = $('lg-api').value.trim();
+      if (apiVal) { API_BASE = apiVal.replace(/\/$/, ''); localStorage.setItem('admin_api_base', API_BASE); }
+      const btn = $('lg-btn');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      $('loginErr').className = 'alert err';
+      try {
+        const data = await api('/api/auth/login', {
+          method: 'POST', auth: false,
+          body: { username: $('lg-user').value.trim(), password: $('lg-pass').value },
+        });
+        TOKEN = data.token; USER = data.user;
+        localStorage.setItem(tokenKey, TOKEN);
+        enterApp();
+      } catch (err) {
+        $('loginErr').textContent = err.message;
+        $('loginErr').className = 'alert err show';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Sign In';
+      }
+    }
+
+    function doLogout() {
+      TOKEN = ''; USER = null;
+      localStorage.removeItem(tokenKey);
+      $('appView').className = 'app';
+      $('loginView').style.display = 'flex';
+    }
+
+    async function enterApp() {
+      $('loginView').style.display = 'none';
+      $('appView').className = 'app show';
+      $('whoami').textContent = USER ? ('Signed in as ' + USER.username) : '';
+      buildNav();
+      go('dashboard');
+    }
+
+    function buildNav() {
+      const el = $('navList');
+      el.innerHTML = NAV.map(group =>
+        `<div class="nav-group-label">${group.label}</div>` +
+        group.items.map(key => {
+          const s = key === 'dashboard' ? { title: 'Dashboard', icon: '📈' } : SECTIONS[key];
+          return `<button class="nav-item" data-section="${key}">
+            <span class="ico">${s.icon}</span> ${s.title}
+            <span class="badge" id="badge-${key}" style="display:none"></span>
+          </button>`;
+        }).join('')
+      ).join('');
+      el.querySelectorAll('.nav-item').forEach(b =>
+        b.addEventListener('click', () => go(b.dataset.section)));
+    }
+
+    function go(section) {
+      currentSection = section;
+      document.querySelectorAll('.nav-item[data-section]').forEach(b =>
+        b.classList.toggle('active', b.dataset.section === section));
+      const s = section === 'dashboard' ? { title: 'Dashboard' } : SECTIONS[section];
+      $('viewTitle').textContent = s.title;
+      const newBtn = $('newBtn');
+      const showNew = SECTIONS[section] && !SECTIONS[section].isLeads && !SECTIONS[section].isSettings && !SECTIONS[section].isMedia;
+      newBtn.style.display = showNew ? '' : 'none';
+      newBtn.textContent = '+ New ' + (SECTIONS[section] ? SECTIONS[section].singular : '');
+      newBtn.onclick = () => openForm(section, null);
+
+      if (section === 'dashboard') return renderDashboard();
+      if (SECTIONS[section].isLeads) return renderLeads();
+      if (SECTIONS[section].isMedia) return renderMedia();
+      if (SECTIONS[section].isSettings) return renderSettings();
+      return renderList(section);
+    }
+
+    // ════════════ DASHBOARD ════════════
+    async function renderDashboard() {
+      $('content').innerHTML = '<div class="loading">Loading…</div>';
+      try {
+        const { data } = await api('/api/dashboard');
+        const cards = [
+          ['leads_new', 'New Leads', true], ['leads', 'Total Leads'],
+          ['blog', 'Blog Posts'], ['services', 'Services'], ['pricing', 'Pricing Plans'],
+          ['team', 'Team'], ['testimonials', 'Testimonials'], ['faqs', 'FAQs'],
+          ['ai_features', 'AI Features'], ['process_steps', 'Process Steps'],
+          ['stats', 'Stats'], ['pillars', 'Pillars'], ['media', 'Media Files'],
+        ];
+        $('content').innerHTML = '<div class="stat-grid">' + cards.map(([k, l, accent]) =>
+          `<div class="stat-box ${accent ? 'accent' : ''}">
+             <div class="n">${data[k] != null ? data[k] : 0}</div>
+             <div class="l">${l}</div>
+           </div>`).join('') + '</div>';
+        // nav badge for new leads
+        const badge = $('badge-leads');
+        if (badge && data.leads_new > 0) { badge.style.display = ''; badge.textContent = data.leads_new; }
+      } catch (err) {
+        $('content').innerHTML = `<div class="empty">Could not load dashboard.<br><small>${esc(err.message)}</small></div>`;
+      }
+    }
+
+    // ════════════ GENERIC LIST ════════════
+    async function renderList(section) {
+      const s = SECTIONS[section];
+      $('content').innerHTML = '<div class="loading">Loading…</div>';
+      try {
+        const { data } = await api(s.api + '?all=1');
+        const rows = data || [];
+        if (!rows.length) {
+          $('content').innerHTML = `<div class="panel"><div class="empty">No ${s.title.toLowerCase()} yet. Click “+ New ${s.singular}”.</div></div>`;
+          return;
+        }
+        const head = s.columns.map(c => `<th>${c.label}</th>`).join('') + '<th></th>';
+        const body = rows.map(r => {
+          const cells = s.columns.map(c => {
+            let v = r[c.key];
+            if (c.type === 'status') return `<td><span class="pill ${v}">${v}</span></td>`;
+            if (c.type === 'bool') return `<td>${v ? '✓' : '—'}</td>`;
+            if (c.key === 'publish_date' && v) v = String(v).slice(0, 16).replace('T', ' ');
+            return `<td>${esc(v != null ? String(v).slice(0, 80) : '—')}</td>`;
+          }).join('');
+          return `<tr>${cells}<td class="actions">
+            <button class="btn ghost small" data-edit="${r.id}">Edit</button>
+            <button class="btn danger small" data-del="${r.id}">Delete</button>
+          </td></tr>`;
+        }).join('');
+        $('content').innerHTML =
+          `<div class="panel"><div class="tbl-wrap"><table>
+             <thead><tr>${head}</tr></thead><tbody>${body}</tbody>
+           </table></div></div>`;
+        $('content').querySelectorAll('[data-edit]').forEach(b =>
+          b.addEventListener('click', () => openForm(section, rows.find(x => x.id == b.dataset.edit))));
+        $('content').querySelectorAll('[data-del]').forEach(b =>
+          b.addEventListener('click', () => delItem(section, b.dataset.del)));
+      } catch (err) {
+        $('content').innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+      }
+    }
+
+    async function delItem(section, id) {
+      if (!confirm('Delete this item? This cannot be undone.')) return;
+      try {
+        await api(SECTIONS[section].api + '/' + id, { method: 'DELETE' });
+        toast('Deleted.');
+        go(section);
+      } catch (err) { toast(err.message, 'err'); }
+    }
+
+    // ════════════ FORM DRAWER ════════════
+    let editing = { section: null, id: null, rte: null };
+    const draftKey = (section, id) => `admin_draft_${section}_${id || 'new'}`;
+
+    function openForm(section, item) {
+      const s = SECTIONS[section];
+      editing = { section, id: item ? item.id : null, rte: null };
+      $('drawerTitle').textContent = (item ? 'Edit ' : 'New ') + s.singular;
+
+      // Restore autosaved draft if present (new items only, to avoid clobbering live data).
+      let draft = null;
+      if (!item) { try { draft = JSON.parse(localStorage.getItem(draftKey(section, null)) || 'null'); } catch (_) {} }
+      const model = item || draft || {};
+      if (section === 'blog' && !item && model.status == null) model.status = 'published';
+
+      $('drawerBody').innerHTML = s.fields.map(f => fieldHTML(f, model[f.key])).join('');
+      wireFields(s, model);
+      showDrawer();
+    }
+
+    function fieldHTML(f, val) {
+      const id = 'f-' + f.key;
+      const v = val == null ? '' : val;
+      if (f.type === 'textarea')
+        return field(f, `<textarea id="${id}">${esc(v)}</textarea>`);
+      if (f.type === 'number')
+        return field(f, `<input id="${id}" type="number" value="${esc(v)}">`);
+      if (f.type === 'select')
+        return field(f, `<select id="${id}">${f.options.map(o => `<option ${o === v ? 'selected' : ''}>${o}</option>`).join('')}</select>`);
+      if (f.type === 'toggle')
+        return `<div class="check-row"><input id="${id}" type="checkbox" ${v ? 'checked' : ''}><label for="${id}">${f.label}</label></div>`;
+      if (f.type === 'color')
+        return field(f, `<input id="${id}" type="text" value="${esc(v)}" placeholder="var(--orange) or #FF5C1A">`);
+      if (f.type === 'tags') {
+        const tagStr = Array.isArray(v) ? v.join(', ') : v;
+        return field(f, `<input id="${id}" type="text" value="${esc(tagStr)}" placeholder="comma, separated, values">`);
+      }
+      if (f.type === 'datetime') {
+        const dt = v ? String(v).replace(' ', 'T').slice(0, 16) : '';
+        return field(f, `<input id="${id}" type="datetime-local" value="${esc(dt)}">`);
+      }
+      if (f.type === 'features') return field(f, `<div id="featBox"></div>
+        <button type="button" class="btn ghost small" id="featAdd" style="margin-top:6px">+ Add feature</button>`);
+      if (f.type === 'image') return field(f, `<div class="img-pick">
+          <div class="preview" id="imgPreview">none</div>
+          <div>
+            <input type="file" id="imgFile" accept="image/*" style="font-size:.8rem">
+            <input id="${id}" type="hidden" value="${esc(v)}">
+            <div class="hint">Uploads to media library.</div>
+          </div></div>`);
+      if (f.type === 'richtext') return field(f, `
+        <div class="rte-toolbar">
+          <button type="button" data-cmd="bold"><b>B</b></button>
+          <button type="button" data-cmd="italic"><i>I</i></button>
+          <button type="button" data-cmd="formatBlock" data-val="h2">H2</button>
+          <button type="button" data-cmd="formatBlock" data-val="p">P</button>
+          <button type="button" data-cmd="insertUnorderedList">• List</button>
+          <button type="button" data-cmd="createLink">Link</button>
+          <button type="button" id="rteImg">Image</button>
+        </div>
+        <div class="rte" id="rte" contenteditable="true">${v || ''}</div>`);
+      // default text
+      return field(f, `<input id="${id}" type="text" value="${esc(v)}">`);
+    }
+
+    function field(f, inner) {
+      return `<div class="field"><label>${f.label}${f.required ? ' *' : ''}</label>${inner}</div>`;
+    }
+
+    function wireFields(s, model) {
+      // features editor
+      if (s.fields.some(f => f.type === 'features')) {
+        const box = $('featBox');
+        const addFeat = (label = '', enabled = true) => {
+          const row = document.createElement('div');
+          row.className = 'feat-row';
+          row.innerHTML = `<input type="checkbox" ${enabled ? 'checked' : ''} title="Included">
+            <input type="text" value="${esc(label)}" placeholder="Feature label">
+            <button type="button" class="btn ghost small">✕</button>`;
+          row.querySelector('button').onclick = () => row.remove();
+          box.appendChild(row);
+        };
+        (model.features || []).forEach(f => addFeat(f.label, f.is_enabled));
+        if (!(model.features || []).length) addFeat();
+        $('featAdd').onclick = () => addFeat();
+      }
+      // richtext
+      const rte = $('rte');
+      if (rte) {
+        editing.rte = rte;
+        document.querySelectorAll('.rte-toolbar [data-cmd]').forEach(b => {
+          b.onclick = () => {
+            const cmd = b.dataset.cmd;
+            if (cmd === 'createLink') { const u = prompt('Link URL:'); if (u) document.execCommand(cmd, false, u); }
+            else document.execCommand(cmd, false, b.dataset.val || null);
+            rte.focus();
+            scheduleDraft();
+          };
+        });
+        const rteImg = $('rteImg');
+        if (rteImg) rteImg.onclick = async () => {
+          const file = await pickFile();
+          if (!file) return;
+          const m = await uploadMedia(file);
+          if (m) document.execCommand('insertImage', false, m.url);
+        };
+        rte.addEventListener('input', scheduleDraft);
+      }
+      // image picker
+      const imgFile = $('imgFile');
+      if (imgFile) {
+        const preview = $('imgPreview');
+        const hidden = $('f-cover_media_id');
+        if (model.cover_media_id) { preview.innerHTML = `<img src="${API_BASE}/api/media/${model.cover_media_id}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`; }
+        imgFile.onchange = async () => {
+          if (!imgFile.files[0]) return;
+          preview.textContent = '…';
+          const m = await uploadMedia(imgFile.files[0]);
+          if (m) {
+            hidden.value = m.id;
+            preview.innerHTML = `<img src="${API_BASE}${m.url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+          }
+        };
+      }
+      // autosave on any input
+      $('drawerBody').querySelectorAll('input,textarea,select').forEach(el =>
+        el.addEventListener('input', scheduleDraft));
+    }
+
+    let draftTimer = null;
+    function scheduleDraft() {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(() => {
+        if (editing.id) return; // only autosave NEW items
+        try { localStorage.setItem(draftKey(editing.section, null), JSON.stringify(collectForm())); } catch (_) {}
+      }, 600);
+    }
+
+    function collectForm() {
+      const s = SECTIONS[editing.section];
+      const out = {};
+      for (const f of s.fields) {
+        if (f.type === 'features') {
+          out.features = [...document.querySelectorAll('#featBox .feat-row')].map((row, i) => ({
+            label: row.querySelector('input[type=text]').value.trim(),
+            is_enabled: row.querySelector('input[type=checkbox]').checked ? 1 : 0,
+            sort_order: i,
+          })).filter(x => x.label);
+          continue;
+        }
+        if (f.type === 'richtext') { out[f.key] = $('rte') ? $('rte').innerHTML : ''; continue; }
+        const el = $('f-' + f.key);
+        if (!el) continue;
+        if (f.type === 'toggle') out[f.key] = el.checked ? 1 : 0;
+        else if (f.type === 'number') out[f.key] = el.value === '' ? null : Number(el.value);
+        else if (f.type === 'tags') out[f.key] = el.value.split(',').map(t => t.trim()).filter(Boolean);
+        else if (f.type === 'datetime') out[f.key] = el.value ? el.value.replace('T', ' ') + ':00' : null;
+        else out[f.key] = el.value;
+      }
+      return out;
+    }
+
+    async function saveForm() {
+      const s = SECTIONS[editing.section];
+      const payload = collectForm();
+      // required validation
+      for (const f of s.fields) {
+        if (f.required && (!payload[f.key] || String(payload[f.key]).trim() === '')) {
+          return toast('“' + f.label + '” is required.', 'err');
+        }
+      }
+      $('drawerSave').disabled = true;
+      try {
+        if (editing.id) await api(s.api + '/' + editing.id, { method: 'PUT', body: payload });
+        else await api(s.api, { method: 'POST', body: payload });
+        localStorage.removeItem(draftKey(editing.section, null));
+        toast('Saved.');
+        hideDrawer();
+        go(editing.section);
+      } catch (err) {
+        toast(err.message, 'err');
+      } finally {
+        $('drawerSave').disabled = false;
+      }
+    }
+
+    // ════════════ LEADS ════════════
+    async function renderLeads() {
+      $('content').innerHTML = '<div class="loading">Loading…</div>';
+      try {
+        const { data } = await api('/api/leads');
+        if (!data.length) { $('content').innerHTML = '<div class="panel"><div class="empty">No leads yet.</div></div>'; return; }
+        const body = data.map(l => `<tr>
+          <td><div class="cell-title">${esc(l.name)}</div><div class="cell-sub">${esc(l.email)} · ${esc(l.phone)}</div></td>
+          <td>${esc(l.business_name || '—')}</td>
+          <td>${esc(l.service || '—')}<div class="cell-sub">${esc(l.budget || '')}</div></td>
+          <td><select data-status="${l.id}">
+            ${['new', 'contacted', 'won', 'lost'].map(o => `<option ${o === l.status ? 'selected' : ''}>${o}</option>`).join('')}
+          </select></td>
+          <td class="cell-sub">${esc(String(l.created_at).slice(0, 16).replace('T', ' '))}</td>
+          <td class="actions"><button class="btn ghost small" data-view="${l.id}">View</button></td>
+        </tr>`).join('');
+        $('content').innerHTML = `<div class="panel"><div class="tbl-wrap"><table>
+          <thead><tr><th>Contact</th><th>Business</th><th>Interest</th><th>Status</th><th>When</th><th></th></tr></thead>
+          <tbody>${body}</tbody></table></div></div>`;
+        $('content').querySelectorAll('[data-status]').forEach(sel =>
+          sel.addEventListener('change', async () => {
+            try { await api('/api/leads/' + sel.dataset.status, { method: 'PUT', body: { status: sel.value } }); toast('Status updated.'); }
+            catch (e) { toast(e.message, 'err'); }
+          }));
+        $('content').querySelectorAll('[data-view]').forEach(b =>
+          b.addEventListener('click', () => viewLead(data.find(x => x.id == b.dataset.view))));
+      } catch (err) {
+        $('content').innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+      }
+    }
+
+    function viewLead(l) {
+      editing = { section: 'leads', id: l.id };
+      $('drawerTitle').textContent = 'Lead · ' + l.name;
+      $('drawerBody').innerHTML = `
+        <div class="field"><label>Name</label><div>${esc(l.name)}</div></div>
+        <div class="row2">
+          <div class="field"><label>Email</label><div><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></div></div>
+          <div class="field"><label>Phone</label><div><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></div></div>
+        </div>
+        <div class="field"><label>Business</label><div>${esc(l.business_name || '—')}</div></div>
+        <div class="row2">
+          <div class="field"><label>Service</label><div>${esc(l.service || '—')}</div></div>
+          <div class="field"><label>Budget</label><div>${esc(l.budget || '—')}</div></div>
+        </div>
+        <div class="field"><label>Goals</label><div>${esc(l.goals || '—')}</div></div>
+        <div class="field"><label>Status</label>
+          <select id="lead-status">${['new', 'contacted', 'won', 'lost'].map(o => `<option ${o === l.status ? 'selected' : ''}>${o}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="lead-notes">${esc(l.notes || '')}</textarea></div>`;
+      $('drawerSave').onclick = async () => {
+        try {
+          await api('/api/leads/' + l.id, { method: 'PUT', body: { status: $('lead-status').value, notes: $('lead-notes').value } });
+          toast('Lead updated.'); hideDrawer(); renderLeads();
+        } catch (e) { toast(e.message, 'err'); }
+      };
+      showDrawer();
+    }
+
+    // ════════════ MEDIA ════════════
+    async function renderMedia() {
+      $('content').innerHTML = '<div class="loading">Loading…</div>';
+      try {
+        const { data } = await api('/api/media');
+        const grid = data.length ? data.map(m => `<div class="media-cell">
+            <img src="${API_BASE}/api/media/${m.id}" alt="${esc(m.alt_text || '')}" loading="lazy">
+            <div class="meta"><span class="fn" title="${esc(m.filename)}">${esc(m.filename)}</span>
+              <button class="btn danger small" data-del="${m.id}">✕</button></div>
+          </div>`).join('') : '<div class="empty">No media yet.</div>';
+        $('content').innerHTML = `<div class="panel">
+            <div class="panel-head"><h3>Media Library</h3>
+              <label class="btn small">Upload<input type="file" id="mediaUpload" accept="image/*" hidden></label>
+            </div>
+            <div style="padding:16px"><div class="media-grid">${grid}</div></div>
+          </div>`;
+        $('mediaUpload').onchange = async (e) => {
+          if (!e.target.files[0]) return;
+          const m = await uploadMedia(e.target.files[0]);
+          if (m) { toast('Uploaded.'); renderMedia(); }
+        };
+        $('content').querySelectorAll('[data-del]').forEach(b =>
+          b.addEventListener('click', async () => {
+            if (!confirm('Delete this image?')) return;
+            try { await api('/api/media/' + b.dataset.del, { method: 'DELETE' }); toast('Deleted.'); renderMedia(); }
+            catch (e) { toast(e.message, 'err'); }
+          }));
+      } catch (err) {
+        $('content').innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // ════════════ SETTINGS ════════════
+    const SETTING_FIELDS = [
+      ['contact_email', 'Contact email'], ['contact_phone', 'Contact phone'],
+      ['whatsapp_number', 'WhatsApp number (digits)'], ['location', 'Location'],
+      ['business_hours', 'Business hours'], ['linkedin_url', 'LinkedIn URL'],
+      ['instagram_url', 'Instagram URL'], ['hero_badge', 'Hero badge text'],
+    ];
+    async function renderSettings() {
+      $('content').innerHTML = '<div class="loading">Loading…</div>';
+      try {
+        const { data } = await api('/api/settings');
+        $('content').innerHTML = `<div class="panel"><div style="padding:22px;max-width:560px">
+          ${SETTING_FIELDS.map(([k, l]) =>
+            `<div class="field"><label>${l}</label><input id="set-${k}" type="text" value="${esc(data[k] || '')}"></div>`).join('')}
+          <button class="btn" id="saveSettings">Save Settings</button>
+        </div></div>`;
+        $('saveSettings').onclick = async () => {
+          const payload = {};
+          SETTING_FIELDS.forEach(([k]) => { payload[k] = $('set-' + k).value; });
+          try { await api('/api/settings', { method: 'PUT', body: payload }); toast('Settings saved.'); }
+          catch (e) { toast(e.message, 'err'); }
+        };
+      } catch (err) {
+        $('content').innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // ════════════ Media helpers ════════════
+    function pickFile() {
+      return new Promise(resolve => {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*';
+        inp.onchange = () => resolve(inp.files[0] || null);
+        inp.click();
+      });
+    }
+    async function uploadMedia(file) {
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const data = await api('/api/media', { method: 'POST', raw: true, body: fd });
+        return data.data;
+      } catch (err) { toast(err.message, 'err'); return null; }
+    }
+
+    // ════════════ Drawer mechanics ════════════
+    function showDrawer() {
+      $('drawerSave').onclick = editing.section === 'leads' ? $('drawerSave').onclick : saveForm;
+      $('overlay').className = 'overlay show';
+      $('drawer').className = 'drawer show';
+    }
+    function hideDrawer() {
+      $('overlay').className = 'overlay';
+      $('drawer').className = 'drawer';
+      $('drawerSave').onclick = saveForm;
+    }
+
+    // ════════════ Wire up ════════════
+    $('loginForm').addEventListener('submit', doLogin);
+    $('logoutBtn').addEventListener('click', doLogout);
+    $('newBtn').addEventListener('click', () => openForm(currentSection, null));
+    $('drawerClose').addEventListener('click', hideDrawer);
+    $('drawerCancel').addEventListener('click', hideDrawer);
+    $('overlay').addEventListener('click', hideDrawer);
+    $('drawerSave').addEventListener('click', () => {}); // real handler set in showDrawer
+    if (API_BASE) $('lg-api').value = API_BASE;
+
+    // Auto-login if token still valid
+    (async function boot() {
+      if (!TOKEN) return;
+      try {
+        const v = await api('/api/auth/verify');
+        USER = v.user; enterApp();
+      } catch (_) { doLogout(); }
+    })();
+  })();
+  </script>
+</body>
+
+</html>

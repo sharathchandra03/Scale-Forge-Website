@@ -23,6 +23,9 @@ app.use(express.static(__dirname, {
   }
 }));
 
+app.get('/blog', (req, res) => res.sendFile(path.join(__dirname, 'blog.html')));
+app.get('/blog/:slug', (req, res) => res.sendFile(path.join(__dirname, 'blog.html')));
+
 app.post('/submit', async (req, res) => {
   try {
     const { name, businessName, email, phone, service, budget, goals } = req.body;
