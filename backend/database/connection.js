@@ -1,4 +1,4 @@
-// ─── Platoons X — MySQL connection pool ──────────────────────────────────────
+// ─── ScaleForge — MySQL connection pool ──────────────────────────────────────
 // Single shared pool, reused by init, adapter, seed, and all routes.
 // Supports EITHER a single DATABASE_URL or discrete DB_* variables.
 
@@ -26,7 +26,7 @@ function buildConfig() {
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'platoons_x',
+    database: process.env.DB_NAME || 'scaleforge',
     ...common,
   };
 }

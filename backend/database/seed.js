@@ -1,4 +1,4 @@
-// ─── Platoons X — Content seed ───────────────────────────────────────────────
+// ─── ScaleForge — Content seed ───────────────────────────────────────────────
 // Migrates the site's current hardcoded content into the database so the public
 // site looks identical on day one. Idempotent: each table is only seeded when
 // empty, so re-running never duplicates rows.
@@ -85,26 +85,26 @@ const pricingPlans = [
 
 const team = [
   ['K. Sharath Chandra', 'Chief Executive Officer', 'SC', 'var(--orange)',
-    "Visionary strategist and SEO expert driving Platoons X's growth mission. Specializes in digital strategy, content, and building data-driven marketing systems that scale.",
+    "Visionary strategist and SEO expert driving ScaleForge's growth mission. Specializes in digital strategy, content, and building data-driven marketing systems that scale.",
     'https://www.linkedin.com/in/sharath-chandra-kotta-59a536212/'],
   ['T. Chandrakanth', 'Chief Financial Officer', 'TC', 'var(--purple)',
     'Financial architect ensuring every campaign delivers measurable ROI. Brings deep expertise in budget optimization, performance analytics, and business profitability.',
     '#'],
   ['Pooja Vishwakarma', 'Head of Creative Strategy', 'P', 'var(--cyan)',
-    "Creative powerhouse behind Platoons X's most impactful campaigns. Expert in brand storytelling, social media virality, and designing digital experiences that captivate audiences.",
+    "Creative powerhouse behind ScaleForge's most impactful campaigns. Expert in brand storytelling, social media virality, and designing digital experiences that captivate audiences.",
     '#'],
 ];
 
 const testimonials = [
-  ['Platoons X transformed our online presence completely. Our organic traffic grew 280% in just 4 months. The team is responsive, data-driven, and truly cares about results.', 'Rajesh Kumar', 'Owner, Bangalore Pharma Pvt Ltd', 'RK', 'var(--orange)'],
-  ['Our Google Ads cost-per-lead dropped by 60% after Platoons X took over. Their keyword strategy and landing page tweaks made an immediate difference.', 'Rahul Verma', 'Founder, SaaS Startup, Bangalore', 'RV', 'var(--cyan)'],
+  ['ScaleForge transformed our online presence completely. Our organic traffic grew 280% in just 4 months. The team is responsive, data-driven, and truly cares about results.', 'Rajesh Kumar', 'Owner, Bangalore Pharma Pvt Ltd', 'RK', 'var(--orange)'],
+  ['Our Google Ads cost-per-lead dropped by 60% after ScaleForge took over. Their keyword strategy and landing page tweaks made an immediate difference.', 'Rahul Verma', 'Founder, SaaS Startup, Bangalore', 'RV', 'var(--cyan)'],
   ['From zero to 12,000 Instagram followers in 3 months. Their content strategy and community management is genuinely world-class.', 'Sneha Gupta', 'Co-Founder, Lifestyle Brand, Mumbai', 'SG', 'var(--gold)'],
   ['The WhatsApp automation they built for us is a game changer. We went from responding to 10 inquiries a day manually to handling 150+ automatically. Pure ROI.', 'Sravani Patel', 'Founder, EduTech Startup, Bangalore', 'SP', 'var(--purple)'],
-  ['Our real estate listings started ranking on page 1 for high-intent keywords in under 10 weeks. The local SEO work Platoons X did is driving quality walk-ins every single week.', 'Kiran Reddy', 'Director, Prime Properties, Bangalore', 'KR', 'var(--orange)'],
-  ['The analytics dashboards Platoons X set up give me full visibility into what\'s working. For the first time I actually understand where every rupee is going.', 'Vikram Singh', 'MD, Singh Manufacturing, Pune', 'VS', 'var(--cyan)'],
+  ['Our real estate listings started ranking on page 1 for high-intent keywords in under 10 weeks. The local SEO work ScaleForge did is driving quality walk-ins every single week.', 'Kiran Reddy', 'Director, Prime Properties, Bangalore', 'KR', 'var(--orange)'],
+  ['The analytics dashboards ScaleForge set up give me full visibility into what\'s working. For the first time I actually understand where every rupee is going.', 'Vikram Singh', 'MD, Singh Manufacturing, Pune', 'VS', 'var(--cyan)'],
   ['Our Meta Ads ROAS jumped from 1.8x to 5.2x within 6 weeks of them taking over. They test aggressively and optimize fast. Best marketing investment we\'ve made.', 'Arjun Mehta', 'CEO, D2C Fashion Brand, Bangalore', 'AM', 'var(--cyan)'],
-  ['Platoons X redesigned our brand\'s digital identity and the results were immediate - better engagement, more DMs, and a 40% jump in footfall to our clinic.', 'Deepika Nair', 'Owner, Nair Wellness Clinic, Chennai', 'DN', 'var(--gold)'],
-  ['We partnered with Platoons X for our restaurant chain\'s social media. Within 2 months, our reservation bookings through Instagram doubled. Absolute professionals.', 'Priya Sharma', 'Operations Head, Spice Route Restaurants', 'PS', 'var(--purple)'],
+  ['ScaleForge redesigned our brand\'s digital identity and the results were immediate - better engagement, more DMs, and a 40% jump in footfall to our clinic.', 'Deepika Nair', 'Owner, Nair Wellness Clinic, Chennai', 'DN', 'var(--gold)'],
+  ['We partnered with ScaleForge for our restaurant chain\'s social media. Within 2 months, our reservation bookings through Instagram doubled. Absolute professionals.', 'Priya Sharma', 'Operations Head, Spice Route Restaurants', 'PS', 'var(--purple)'],
 ];
 
 const faqs = [
@@ -112,7 +112,7 @@ const faqs = [
   ['Do you have EMI options?', 'Yes! We offer 0% interest EMI plans for all our packages starting at just ₹1,083/month. We partner with leading banks and payment platforms. Ask our team for details during your consultation.'],
   ['Is ad spend included in your pricing?', 'No · our pricing covers management fees, strategy, and execution. Your ad spend (Google/Meta budget) is separate and paid directly to the platforms. We recommend a minimum ad budget based on your goals.'],
   ['Do you work with businesses outside Bangalore?', "Absolutely. While we're headquartered in Bangalore, we serve clients across India's major cities and have experience with pan-India and international campaigns."],
-  ['What makes Platoons X different from other agencies?', "We're lean, fast, and obsessed with results. No bloated teams, no account-manager middlemen. You work directly with the strategists executing your campaigns. Plus, our AI automation capabilities are ahead of 95% of local agencies."],
+  ['What makes ScaleForge different from other agencies?', "We're lean, fast, and obsessed with results. No bloated teams, no account-manager middlemen. You work directly with the strategists executing your campaigns. Plus, our AI automation capabilities are ahead of 95% of local agencies."],
   ['Can I get a free audit?', "Yes! We offer a complimentary 30-minute digital audit for new prospects. We'll analyse your current SEO, social, and ad performance and share a growth roadmap · no strings attached."],
   ['What industries do you specialise in?', "We've worked with real estate, healthcare, education, e-commerce, B2B SaaS, restaurants, and professional services. Our data-driven approach adapts to any industry and market."],
   ['What is the minimum contract period?', 'We recommend a minimum 3-month engagement to see meaningful results, especially for SEO. For Paid Ads and Automation projects, we offer monthly rolling contracts after an initial setup phase.'],
@@ -180,7 +180,7 @@ const settings = {
 };
 
 async function seed() {
-  console.log('🌱 Seeding Platoons X content…');
+  console.log('🌱 Seeding ScaleForge content…');
   await initDatabase(); // make sure tables exist
 
   await seedTable('services', 'services', async () => {

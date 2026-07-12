@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Platoons X · Admin</title>
+  <title>ScaleForge · Admin</title>
 
   <!-- Same fonts as the public site so the panel feels native -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -235,7 +235,7 @@
   <div class="login-wrap" id="loginView">
     <div class="login-card">
       <div class="brand">
-        <img src="photos/Logo .png" alt="Platoons X" onerror="this.style.display='none'">
+        <img src="photos/Logo .png" alt="ScaleForge" onerror="this.style.display='none'">
       </div>
       <h1>Admin Panel</h1>
       <p class="sub">Sign in to manage your website content.</p>
@@ -304,10 +304,10 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <div class="settings-bar">Platoons X Admin · <a href="/api/health" target="_blank">health</a></div>
+  <div class="settings-bar">ScaleForge Admin · <a href="/api/health" target="_blank">health</a></div>
 
   <script>
-  // ═══════════════ Platoons X Admin — single-file app ═══════════════
+  // ═══════════════ ScaleForge Admin — single-file app ═══════════════
   (function () {
     'use strict';
 
@@ -399,7 +399,8 @@
         fields: [
           { key: 'name', label: 'Name', type: 'text', required: true },
           { key: 'role', label: 'Role / title', type: 'text' },
-          { key: 'initials', label: 'Avatar initials', type: 'text' },
+          { key: 'photo_media_id', label: 'Profile photo', type: 'image' },
+          { key: 'initials', label: 'Avatar initials (fallback if no photo)', type: 'text' },
           { key: 'avatar_color', label: 'Avatar color', type: 'color' },
           { key: 'description', label: 'Bio', type: 'textarea' },
           { key: 'linkedin_url', label: 'LinkedIn URL', type: 'text' },
@@ -528,7 +529,7 @@
       { label: 'OVERVIEW', items: ['dashboard'] },
       { label: 'CONTENT', items: ['services', 'pricing', 'team', 'testimonials', 'faqs', 'blog'] },
       { label: 'SECTIONS', items: ['process-steps', 'ai-features', 'stats', 'pillars'] },
-      { label: 'INBOX & ASSETS', items: ['leads', 'media', 'settings'] },
+      { label: 'SYSTEM', items: ['leads', 'media', 'settings'] },
     ];
 
     // ════════════ AUTH ════════════
@@ -599,6 +600,7 @@
       newBtn.onclick = () => openForm(section, null);
 
       if (section === 'dashboard') return renderDashboard();
+      if (SECTIONS[section].isBlog) return renderBlogList();
       if (SECTIONS[section].isLeads) return renderLeads();
       if (SECTIONS[section].isMedia) return renderMedia();
       if (SECTIONS[section].isSettings) return renderSettings();
@@ -682,6 +684,9 @@
     const draftKey = (section, id) => `admin_draft_${section}_${id || 'new'}`;
 
     function openForm(section, item) {
+      // Blog uses full-page editor instead of drawer
+      if (section === 'blog') return renderBlogEditor(item);
+
       const s = SECTIONS[section];
       editing = { section, id: item ? item.id : null, rte: null };
       $('drawerTitle').textContent = (item ? 'Edit ' : 'New ') + s.singular;
@@ -789,8 +794,10 @@
       const imgFile = $('imgFile');
       if (imgFile) {
         const preview = $('imgPreview');
-        const hidden = $('f-cover_media_id');
-        if (model.cover_media_id) { preview.innerHTML = `<img src="${API_BASE}/api/media/${model.cover_media_id}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`; }
+        // Find the hidden input dynamically (works for cover_media_id, photo_media_id, etc.)
+        const hidden = imgFile.parentElement.querySelector('input[type=hidden]');
+        const mediaId = hidden ? hidden.value : null;
+        if (mediaId) { preview.innerHTML = `<img src="${API_BASE}/api/media/${mediaId}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`; }
         imgFile.onchange = async () => {
           if (!imgFile.files[0]) return;
           preview.textContent = '…';
@@ -861,6 +868,271 @@
       } finally {
         $('drawerSave').disabled = false;
       }
+    }
+
+    // ════════════ BLOG (full-page editor) ════════════
+    async function renderBlogList() {
+      $('content').innerHTML = '<div class="loading">Loading…</div>';
+      $('newBtn').onclick = () => renderBlogEditor(null);
+      try {
+        const { data } = await api('/api/blog?all=1');
+        const rows = data || [];
+        if (!rows.length) {
+          $('content').innerHTML = `<div class="panel"><div class="empty">No blog posts yet. Click "+ New Post" to create your first article.</div></div>`;
+          return;
+        }
+        const body = rows.map(r => {
+          let dt = r.publish_date ? String(r.publish_date).slice(0, 16).replace('T', ' ') : '—';
+          return `<tr>
+            <td><div class="cell-title">${esc(r.title)}</div><div class="cell-sub">${esc(r.slug || '')}</div></td>
+            <td>${esc(r.category || '—')}</td>
+            <td><span class="pill ${r.status}">${r.status}</span></td>
+            <td class="cell-sub">${dt}</td>
+            <td class="actions">
+              <button class="btn ghost small" data-blog-edit="${r.id}">Edit</button>
+              <button class="btn danger small" data-blog-del="${r.id}">Delete</button>
+            </td>
+          </tr>`;
+        }).join('');
+        $('content').innerHTML = `<div class="panel"><div class="tbl-wrap"><table>
+          <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Publish</th><th></th></tr></thead>
+          <tbody>${body}</tbody></table></div></div>`;
+        $('content').querySelectorAll('[data-blog-edit]').forEach(b =>
+          b.addEventListener('click', async () => {
+            const post = rows.find(x => x.id == b.dataset.blogEdit);
+            if (post) renderBlogEditor(post);
+          }));
+        $('content').querySelectorAll('[data-blog-del]').forEach(b =>
+          b.addEventListener('click', async () => {
+            if (!confirm('Delete this post? This cannot be undone.')) return;
+            try { await api('/api/blog/' + b.dataset.blogDel, { method: 'DELETE' }); toast('Deleted.'); renderBlogList(); }
+            catch (e) { toast(e.message, 'err'); }
+          }));
+      } catch (err) {
+        $('content').innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+      }
+    }
+
+    function renderBlogEditor(post) {
+      const isEdit = !!post;
+      const m = post || {};
+      $('viewTitle').textContent = isEdit ? 'Edit Post' : 'Create New Post';
+      $('newBtn').style.display = 'none';
+
+      const coverPreview = m.cover_media_id
+        ? `<img src="${API_BASE}/api/media/${m.cover_media_id}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px">`
+        : '<div style="color:var(--muted);font-size:.8rem">No image selected</div>';
+
+      const tagsStr = Array.isArray(m.tags) ? m.tags.join(', ') : (m.tags || '');
+      const pubDate = m.publish_date ? String(m.publish_date).replace(' ', 'T').slice(0, 16) : '';
+
+      $('content').innerHTML = `
+        <div style="max-width:900px">
+          <button class="btn ghost small" id="blogBackBtn" style="margin-bottom:20px">← Back to posts</button>
+
+          <div class="panel" style="padding:28px">
+            <div class="row2" style="margin-bottom:16px">
+              <div class="field"><label>Title *</label><input id="bp-title" type="text" value="${esc(m.title || '')}" placeholder="Your post title"></div>
+              <div class="field"><label>Author</label><input id="bp-author" type="text" value="${esc(m.author || '')}" placeholder="Author name"></div>
+            </div>
+
+            <div class="row2" style="margin-bottom:16px">
+              <div class="field"><label>Slug (auto if blank)</label><input id="bp-slug" type="text" value="${esc(m.slug || '')}" placeholder="auto-generated-from-title"></div>
+              <div class="field"><label>Publish date</label><input id="bp-publish_date" type="datetime-local" value="${esc(pubDate)}"></div>
+            </div>
+
+            <div class="row2" style="margin-bottom:16px">
+              <div class="field"><label>Category</label><input id="bp-category" type="text" value="${esc(m.category || '')}" placeholder="e.g. SEO, Marketing"></div>
+              <div class="field"><label>Tags (comma separated)</label><input id="bp-tags" type="text" value="${esc(tagsStr)}" placeholder="seo, growth, tips"></div>
+            </div>
+
+            <div class="row2" style="margin-bottom:16px">
+              <div class="field">
+                <label>Status</label>
+                <select id="bp-status">
+                  <option value="published" ${m.status === 'published' ? 'selected' : ''}>Published</option>
+                  <option value="draft" ${m.status === 'draft' || !m.status ? 'selected' : ''}>Draft</option>
+                  <option value="scheduled" ${m.status === 'scheduled' ? 'selected' : ''}>Scheduled</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Featured Image</label>
+                <div class="img-pick">
+                  <div style="min-width:100px">${coverPreview}</div>
+                  <div>
+                    <input type="file" id="bp-cover-file" accept="image/*" style="font-size:.8rem">
+                    <input id="bp-cover_media_id" type="hidden" value="${esc(m.cover_media_id || '')}">
+                    <div class="hint">Uploads to media library</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:16px">
+              <label>Excerpt / Introduction</label>
+              <textarea id="bp-excerpt" rows="3" placeholder="Short summary shown in blog cards...">${esc(m.excerpt || '')}</textarea>
+            </div>
+
+            <div class="field" style="margin-bottom:16px">
+              <label>Body Content *</label>
+              <div id="bp-blocks" style="border:1px solid var(--border2);border-radius:12px;padding:16px;background:var(--bg);min-height:200px"></div>
+              <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+                <button type="button" class="btn ghost small" id="bp-add-subheading">+ Add Subheading</button>
+                <button type="button" class="btn ghost small" id="bp-add-paragraph">+ Add Paragraph</button>
+                <button type="button" class="btn ghost small" id="bp-add-image">+ Add Image</button>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border)">
+              <button class="btn ghost" id="blogCancelBtn">Cancel</button>
+              <button class="btn" id="blogSaveBtn">${isEdit ? 'Update Post' : 'Create Post'}</button>
+            </div>
+          </div>
+        </div>`;
+
+      // Wire cover image upload
+      const coverFile = $('bp-cover-file');
+      if (coverFile) {
+        coverFile.onchange = async () => {
+          if (!coverFile.files[0]) return;
+          const media = await uploadMedia(coverFile.files[0]);
+          if (media) {
+            $('bp-cover_media_id').value = media.id;
+            coverFile.parentElement.previousElementSibling.innerHTML =
+              `<img src="${API_BASE}${media.url}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px">`;
+          }
+        };
+      }
+
+      // Wire block-based body editor
+      const blocksEl = $('bp-blocks');
+
+      function addBlock(type, content) {
+        const block = document.createElement('div');
+        block.style.cssText = 'position:relative;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:var(--surface)';
+        block.dataset.blockType = type;
+
+        if (type === 'subheading') {
+          block.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:.7rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px">Subheading</span>
+              <button type="button" class="btn ghost small bp-block-remove" style="padding:3px 8px;font-size:.7rem">✕ Remove</button>
+            </div>
+            <input type="text" class="bp-block-value" value="${esc(content || '')}" placeholder="Enter subheading..." style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-size:1.05rem;font-weight:600;font-family:var(--font-d)">`;
+        } else if (type === 'paragraph') {
+          block.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:.7rem;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:.5px">Paragraph</span>
+              <button type="button" class="btn ghost small bp-block-remove" style="padding:3px 8px;font-size:.7rem">✕ Remove</button>
+            </div>
+            <textarea class="bp-block-value" rows="4" placeholder="Enter paragraph text..." style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;line-height:1.7;font-family:var(--font-b);resize:vertical">${esc(content || '')}</textarea>`;
+        } else if (type === 'image') {
+          block.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:.7rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.5px">Image</span>
+              <button type="button" class="btn ghost small bp-block-remove" style="padding:3px 8px;font-size:.7rem">✕ Remove</button>
+            </div>
+            <div class="bp-block-img-preview" style="margin-bottom:8px">${content ? '<img src="'+esc(content)+'" style="max-width:100%;max-height:200px;border-radius:8px">' : ''}</div>
+            <input type="file" accept="image/*" class="bp-block-img-file" style="font-size:.8rem">
+            <input type="hidden" class="bp-block-value" value="${esc(content || '')}">`;
+        }
+
+        block.querySelector('.bp-block-remove').onclick = () => block.remove();
+
+        // Wire image upload for image blocks
+        if (type === 'image') {
+          const fileInput = block.querySelector('.bp-block-img-file');
+          fileInput.onchange = async () => {
+            if (!fileInput.files[0]) return;
+            const media = await uploadMedia(fileInput.files[0]);
+            if (media) {
+              const url = API_BASE + media.url;
+              block.querySelector('.bp-block-value').value = url;
+              block.querySelector('.bp-block-img-preview').innerHTML = '<img src="'+url+'" style="max-width:100%;max-height:200px;border-radius:8px">';
+            }
+          };
+        }
+
+        blocksEl.appendChild(block);
+      }
+
+      // Parse existing body HTML into blocks
+      if (m.body) {
+        const temp = document.createElement('div');
+        temp.innerHTML = m.body;
+        temp.childNodes.forEach(node => {
+          if (node.nodeType === 3 && node.textContent.trim()) {
+            addBlock('paragraph', node.textContent.trim());
+          } else if (node.nodeType === 1) {
+            const tag = node.tagName.toLowerCase();
+            if (tag === 'h2' || tag === 'h3') {
+              addBlock('subheading', node.textContent);
+            } else if (tag === 'img') {
+              addBlock('image', node.src || node.getAttribute('src') || '');
+            } else if (tag === 'p' && node.querySelector('img') && !node.textContent.trim()) {
+              const img = node.querySelector('img');
+              addBlock('image', img.src || img.getAttribute('src') || '');
+            } else {
+              addBlock('paragraph', node.innerHTML || node.textContent);
+            }
+          }
+        });
+      }
+
+      $('bp-add-subheading').onclick = () => addBlock('subheading', '');
+      $('bp-add-paragraph').onclick = () => addBlock('paragraph', '');
+      $('bp-add-image').onclick = () => addBlock('image', '');
+
+      // Helper to collect blocks into HTML
+      function collectBodyHTML() {
+        let html = '';
+        blocksEl.querySelectorAll('[data-block-type]').forEach(block => {
+          const type = block.dataset.blockType;
+          const val = block.querySelector('.bp-block-value');
+          if (!val) return;
+          const content = val.value || val.textContent || '';
+          if (!content.trim()) return;
+          if (type === 'subheading') html += '<h2>' + esc(content) + '</h2>\n';
+          else if (type === 'paragraph') html += '<p>' + content.replace(/\n/g, '<br>') + '</p>\n';
+          else if (type === 'image') html += '<img src="' + esc(content) + '" alt="" style="max-width:100%;border-radius:12px;margin:12px 0">\n';
+        });
+        return html;
+      }
+
+      // Back / Cancel
+      $('blogBackBtn').onclick = () => go('blog');
+      $('blogCancelBtn').onclick = () => go('blog');
+
+      // Save
+      $('blogSaveBtn').onclick = async () => {
+        const title = $('bp-title').value.trim();
+        if (!title) return toast('"Title" is required.', 'err');
+
+        const payload = {
+          title,
+          slug: $('bp-slug').value.trim() || '',
+          excerpt: $('bp-excerpt').value.trim(),
+          body: collectBodyHTML(),
+          author: $('bp-author').value.trim(),
+          category: $('bp-category').value.trim(),
+          tags: $('bp-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+          status: $('bp-status').value,
+          publish_date: $('bp-publish_date').value ? $('bp-publish_date').value.replace('T', ' ') + ':00' : null,
+          cover_media_id: $('bp-cover_media_id').value || null,
+        };
+
+        $('blogSaveBtn').disabled = true;
+        try {
+          if (isEdit) await api('/api/blog/' + post.id, { method: 'PUT', body: payload });
+          else await api('/api/blog', { method: 'POST', body: payload });
+          toast(isEdit ? 'Post updated.' : 'Post created.');
+          go('blog');
+        } catch (err) {
+          toast(err.message, 'err');
+        } finally {
+          $('blogSaveBtn').disabled = false;
+        }
+      };
     }
 
     // ════════════ LEADS ════════════
@@ -955,24 +1227,123 @@
     }
 
     // ════════════ SETTINGS ════════════
-    const SETTING_FIELDS = [
-      ['contact_email', 'Contact email'], ['contact_phone', 'Contact phone'],
-      ['whatsapp_number', 'WhatsApp number (digits)'], ['location', 'Location'],
-      ['business_hours', 'Business hours'], ['linkedin_url', 'LinkedIn URL'],
-      ['instagram_url', 'Instagram URL'], ['hero_badge', 'Hero badge text'],
-    ];
+    const SETTINGS_TABS = {
+      general: {
+        label: '⚙️ General',
+        fields: [
+          ['site_name', 'Site / Brand name'],
+          ['site_tagline', 'Tagline'],
+          ['contact_email', 'Contact email'],
+          ['contact_phone', 'Contact phone'],
+          ['whatsapp_number', 'WhatsApp number (digits)'],
+          ['location', 'Location'],
+          ['business_hours', 'Business hours'],
+          ['copyright_text', 'Copyright text'],
+        ]
+      },
+      hero: {
+        label: '🚀 Hero Section',
+        fields: [
+          ['hero_badge', 'Badge text (e.g. "Bangalore\'s Digital Growth Agency")'],
+          ['hero_heading_1', 'Heading line 1 (e.g. "We Make")'],
+          ['hero_heading_2', 'Heading line 2 (orange, e.g. "Brands Grow")'],
+          ['hero_heading_3', 'Heading line 3 (gradient, e.g. "Radically.")'],
+          ['hero_subtitle', 'Subtitle paragraph'],
+          ['hero_cta_primary', 'Primary CTA text'],
+          ['hero_cta_primary_url', 'Primary CTA URL (e.g. #contact)'],
+          ['hero_cta_secondary', 'Secondary CTA text'],
+          ['hero_cta_secondary_url', 'Secondary CTA URL (e.g. #services)'],
+        ]
+      },
+      social: {
+        label: '🔗 Social & Links',
+        fields: [
+          ['linkedin_url', 'LinkedIn URL'],
+          ['instagram_url', 'Instagram URL'],
+          ['twitter_url', 'Twitter / X URL'],
+          ['facebook_url', 'Facebook URL'],
+          ['youtube_url', 'YouTube URL'],
+          ['google_maps_url', 'Google Maps URL'],
+          ['calendly_url', 'Booking / Calendly URL'],
+        ]
+      },
+      seo: {
+        label: '🔍 SEO & Meta',
+        fields: [
+          ['meta_title', 'Homepage meta title'],
+          ['meta_description', 'Homepage meta description'],
+          ['og_image_url', 'OG image URL'],
+          ['canonical_url', 'Canonical URL'],
+          ['google_analytics_id', 'Google Analytics ID (e.g. G-XXXXXXX)'],
+          ['google_tag_manager', 'GTM container ID'],
+        ]
+      },
+      sections: {
+        label: '👁️ Section Visibility',
+        fields: [
+          ['show_blog_section', 'Show Blog section on homepage (yes/no)'],
+          ['show_pricing_section', 'Show Pricing section (yes/no)'],
+          ['show_testimonials', 'Show Testimonials (yes/no)'],
+          ['show_process', 'Show Process / How We Work (yes/no)'],
+          ['show_spline_3d', 'Show 3D Spline scene in FAQ (yes/no)'],
+          ['announcement_banner', 'Announcement banner text (leave blank to hide)'],
+          ['announcement_url', 'Announcement link URL'],
+        ]
+      },
+      footer: {
+        label: '🦶 Footer',
+        fields: [
+          ['footer_description', 'Footer brand description'],
+          ['footer_location_badge', 'Location badge text'],
+        ]
+      },
+    };
+
+    let activeSettingsTab = 'general';
+
     async function renderSettings() {
       $('content').innerHTML = '<div class="loading">Loading…</div>';
       try {
         const { data } = await api('/api/settings');
-        $('content').innerHTML = `<div class="panel"><div style="padding:22px;max-width:560px">
-          ${SETTING_FIELDS.map(([k, l]) =>
-            `<div class="field"><label>${l}</label><input id="set-${k}" type="text" value="${esc(data[k] || '')}"></div>`).join('')}
-          <button class="btn" id="saveSettings">Save Settings</button>
+        const tabs = Object.entries(SETTINGS_TABS);
+        const tabsHtml = tabs.map(([key, tab]) =>
+          `<button class="btn small ${key === activeSettingsTab ? '' : 'ghost'}" data-stab="${key}">${tab.label}</button>`
+        ).join('');
+
+        const fieldsHtml = tabs.map(([key, tab]) => {
+          const visible = key === activeSettingsTab ? '' : 'style="display:none"';
+          return `<div class="settings-group" id="stab-${key}" ${visible}>
+            ${tab.fields.map(([k, l]) =>
+              `<div class="field"><label>${l}</label><input id="set-${k}" type="text" value="${esc(data[k] || '')}"></div>`
+            ).join('')}
+          </div>`;
+        }).join('');
+
+        $('content').innerHTML = `<div class="panel"><div style="padding:22px;max-width:640px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px">${tabsHtml}</div>
+          ${fieldsHtml}
+          <button class="btn" id="saveSettings" style="margin-top:16px">Save All Settings</button>
         </div></div>`;
+
+        // Tab switching
+        $('content').querySelectorAll('[data-stab]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            activeSettingsTab = btn.dataset.stab;
+            $('content').querySelectorAll('.settings-group').forEach(g => g.style.display = 'none');
+            $('stab-' + activeSettingsTab).style.display = '';
+            $('content').querySelectorAll('[data-stab]').forEach(b => b.className = 'btn small ghost');
+            btn.className = 'btn small';
+          });
+        });
+
         $('saveSettings').onclick = async () => {
           const payload = {};
-          SETTING_FIELDS.forEach(([k]) => { payload[k] = $('set-' + k).value; });
+          tabs.forEach(([, tab]) => {
+            tab.fields.forEach(([k]) => {
+              const el = $('set-' + k);
+              if (el) payload[k] = el.value;
+            });
+          });
           try { await api('/api/settings', { method: 'PUT', body: payload }); toast('Settings saved.'); }
           catch (e) { toast(e.message, 'err'); }
         };

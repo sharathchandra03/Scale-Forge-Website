@@ -3,29 +3,33 @@ node_modules/
 
 # env files
 .env
-.env.*
 
 # editor / OS noise
 .vscode/
+.claude/
 .DS_Store
 Thumbs.db
-photos/desktop.ini
+desktop.ini
 
-# local app/db artifacts
-.claude/
+# local database artifacts
 ruvector.db
-*.log
+*.db
 
-# misc
-coverage/
-*.tgz
+# logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# specific files to ignore
-pricing_guide_digital_marketing.html
-BUILD_PLAN.md
-asset-code-pricing.html
+# test coverage
+coverage/
 
+# build artifacts
+*.tgz
 
+# reference / planning docs (keep locally, don't ship)
+google-apps-script.gs
+docs/superpowers/
+
+# OS metadata
+photos/desktop.ini

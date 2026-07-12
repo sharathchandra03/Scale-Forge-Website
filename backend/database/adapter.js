@@ -1,4 +1,4 @@
-// ─── Platoons X — Database adapter layer ─────────────────────────────────────
+// ─── ScaleForge — Database adapter layer ─────────────────────────────────────
 // Abstracts queries away from the route files so swapping/upgrading the DB
 // engine later is contained here. Centralizes:
 //   • a generic CRUD factory for simple content tables

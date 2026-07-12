@@ -1,4 +1,4 @@
-// ─── Platoons X — Public site dynamic content loader ─────────────────────────
+// ─── ScaleForge — Public site dynamic content loader ─────────────────────────
 // Progressive enhancement: fetches content from the admin API and, ONLY on a
 // successful response, swaps the matching section's items for DB-driven ones.
 // If the API/DB is unavailable, the existing hardcoded HTML stays on screen —
@@ -19,7 +19,7 @@
   // Same-origin by default; override only if the admin API runs elsewhere.
   var storedApiBase = '';
   try { storedApiBase = window.localStorage.getItem('admin_api_base') || ''; } catch (e) { storedApiBase = ''; }
-  var API_BASE = (window.PLATOONS_API_BASE || storedApiBase || '').replace(/\/$/, '');
+  var API_BASE = (window.SCALEFORGE_API_BASE || storedApiBase || '').replace(/\/$/, '');
 
   function api(path) {
     return fetch(API_BASE + path, { headers: { Accept: 'application/json' } })
@@ -193,7 +193,7 @@
 
   function blogCover(post) {
     if (!post || !post.cover_media_id) {
-      return '<div class="blog-cover-empty">Platoons X</div>';
+      return '<div class="blog-cover-empty">ScaleForge</div>';
     }
     return '<img src="' + API_BASE + '/api/media/' + post.cover_media_id + '" alt="' + esc(post.title || 'Blog post') + '">';
   }
@@ -258,7 +258,7 @@
           blogDetail.innerHTML = '<div class="blog-empty"><a class="blog-back" href="/blog">← Back to blog</a><p style="margin-top:14px">This article is not available right now.</p></div>';
           return;
         }
-        document.title = post.title ? post.title + ' | Platoons X Blog' : document.title;
+        document.title = post.title ? post.title + ' | ScaleForge Blog' : document.title;
         var tags = toArray(post.tags);
         blogDetail.innerHTML = '' +
           '<article class="blog-article">' +
@@ -301,4 +301,118 @@
       }).catch(function () { /* DB offline — Sheets path still works */ });
     }, false);
   })();
+
+  // ── Site settings → dynamic content from admin ──
+  // Applies settings to the page: hero text, contact info, section visibility,
+  // footer content, social links. Falls back to static HTML if API unavailable.
+  api('/api/settings').then(function (data) {
+    if (!data || typeof data !== 'object') return;
+
+    // Hero section
+    if (data.hero_badge) {
+      var badge = document.querySelector('.hero-badge');
+      if (badge) badge.innerHTML = '🚀 ' + esc(data.hero_badge);
+    }
+    if (data.hero_heading_1 || data.hero_heading_2 || data.hero_heading_3) {
+      var h1 = document.querySelector('.hero h1');
+      if (h1) {
+        h1.innerHTML =
+          esc(data.hero_heading_1 || 'We Make') + '<br>' +
+          '<span class="line-orange">' + esc(data.hero_heading_2 || 'Brands Grow') + '</span><br>' +
+          '<span class="line-grad">' + esc(data.hero_heading_3 || 'Radically.') + '</span>';
+      }
+    }
+    if (data.hero_subtitle) {
+      var sub = document.querySelector('.hero-sub');
+      if (sub) sub.textContent = data.hero_subtitle;
+    }
+    if (data.hero_cta_primary) {
+      var cta1 = document.querySelector('.hero-cta-group .btn-primary');
+      if (cta1) {
+        var svg = cta1.querySelector('svg');
+        cta1.textContent = data.hero_cta_primary;
+        if (svg) cta1.prepend(svg);
+        if (data.hero_cta_primary_url) cta1.href = data.hero_cta_primary_url;
+      }
+    }
+    if (data.hero_cta_secondary) {
+      var cta2 = document.querySelector('.hero-cta-group .btn-ghost');
+      if (cta2) {
+        var svg2 = cta2.querySelector('svg');
+        cta2.textContent = data.hero_cta_secondary;
+        if (svg2) cta2.append(svg2);
+        if (data.hero_cta_secondary_url) cta2.href = data.hero_cta_secondary_url;
+      }
+    }
+
+    // Contact details
+    if (data.contact_email) {
+      document.querySelectorAll('a[href^="mailto:"]').forEach(function(a) {
+        a.href = 'mailto:' + data.contact_email;
+        a.textContent = data.contact_email;
+      });
+    }
+    if (data.contact_phone) {
+      document.querySelectorAll('a[href^="tel:"]').forEach(function(a) {
+        a.href = 'tel:' + data.contact_phone.replace(/\s/g, '');
+        a.textContent = data.contact_phone;
+      });
+    }
+    if (data.whatsapp_number) {
+      document.querySelectorAll('a[href*="wa.me"]').forEach(function(a) {
+        a.href = 'https://wa.me/' + data.whatsapp_number.replace(/\D/g, '');
+      });
+    }
+    if (data.location) {
+      var loc = document.querySelector('.location-badge');
+      if (loc) loc.textContent = data.location;
+    }
+
+    // Footer
+    if (data.footer_description) {
+      var footerP = document.querySelector('.footer-brand > p');
+      if (footerP) footerP.textContent = data.footer_description;
+    }
+    if (data.copyright_text) {
+      var copy = document.querySelector('.footer-bottom p:first-child');
+      if (copy) copy.textContent = data.copyright_text;
+    }
+
+    // Section visibility (hide sections if set to "no")
+    function hideIf(key, selector) {
+      if (data[key] && data[key].toLowerCase() === 'no') {
+        var el = document.querySelector(selector);
+        if (el) el.style.display = 'none';
+      }
+    }
+    hideIf('show_blog_section', '#blog-section');
+    hideIf('show_pricing_section', '.pricing');
+    hideIf('show_testimonials', '.testimonials');
+    hideIf('show_process', '#process');
+    hideIf('show_spline_3d', '.faq-spline-wrap');
+
+    // Announcement banner
+    if (data.announcement_banner && data.announcement_banner.trim()) {
+      var banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1001;background:var(--orange);color:#fff;text-align:center;padding:8px 16px;font-size:.8rem;font-weight:600;font-family:var(--font-a)';
+      banner.textContent = data.announcement_banner;
+      if (data.announcement_url) {
+        banner.style.cursor = 'pointer';
+        banner.onclick = function() { window.location.href = data.announcement_url; };
+      }
+      document.body.prepend(banner);
+      // Push nav down
+      var nav = document.getElementById('navbar');
+      if (nav) nav.style.top = '36px';
+    }
+
+    // Social links in footer
+    if (data.linkedin_url) {
+      document.querySelectorAll('.social-btn[title="LinkedIn"]').forEach(function(a) { a.href = data.linkedin_url; });
+    }
+    if (data.instagram_url) {
+      document.querySelectorAll('.social-btn[title="Instagram"]').forEach(function(a) { a.href = data.instagram_url; });
+    }
+
+  }).catch(function () { /* offline — keep static */ });
 })();

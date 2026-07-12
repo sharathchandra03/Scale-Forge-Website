@@ -1,0 +1,7 @@
+# ScaleForge — robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://www.scaleforge.in/sitemap.xml

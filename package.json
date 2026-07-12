@@ -1,11 +1,10 @@
 {
-  "name": "snc-leads-server",
+  "name": "scaleforge-server",
   "version": "1.0.0",
-  "description": "Platoons X - website + admin panel backend (Express + MySQL)",
+  "description": "ScaleForge - website + admin panel backend (Express + MySQL)",
   "main": "server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "start:legacy": "node server.js",
     "dev": "node backend/server.js",
     "db:init": "node backend/database/init.js",
     "db:seed": "node backend/database/seed.js",
@@ -16,6 +15,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "mysql2": "^3.22.5",

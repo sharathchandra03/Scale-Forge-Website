@@ -1,4 +1,4 @@
-// ─── Platoons X — Media routes ───────────────────────────────────────────────
+// ─── ScaleForge — Media routes ───────────────────────────────────────────────
 //   POST   /api/media        🔒 upload (multipart "file"); validated mime+size,
 //                            stored as a DB blob (Cloudinary later via env).
 //   GET    /api/media        🔒 list (metadata only)

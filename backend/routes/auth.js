@@ -1,4 +1,4 @@
-// ─── Platoons X — Auth routes ────────────────────────────────────────────────
+// ─── ScaleForge — Auth routes ────────────────────────────────────────────────
 //   POST /api/auth/login            { username, password } -> { token, user }
 //   POST /api/auth/register-admin   first-run only (refused if any admin exists)
 //   GET  /api/auth/verify           (Bearer) -> { valid, user }

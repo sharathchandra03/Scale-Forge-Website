@@ -1,4 +1,4 @@
-// ─── Platoons X — Generic CRUD router factory ────────────────────────────────
+// ─── ScaleForge — Generic CRUD router factory ────────────────────────────────
 // Builds a RESTful router for a simple content resource backed by an adapter
 // object that exposes list/getById/create/update/remove. Public reads, all
 // writes guarded by verifyToken.

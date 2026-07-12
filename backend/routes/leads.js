@@ -1,4 +1,4 @@
-// ─── Platoons X — Leads routes ───────────────────────────────────────────────
+// ─── ScaleForge — Leads routes ───────────────────────────────────────────────
 //   POST /api/leads        PUBLIC — contact form. Saves to DB AND mirrors to
 //                          the existing Google Sheet (best-effort, non-blocking).
 //   GET  /api/leads        🔒 admin inbox

@@ -1,7 +1,7 @@
-# Platoons X — Admin Panel & Backend
+# ScaleForge — Admin Panel & Backend
 
 An **additive** admin panel + database-backed API bolted onto the existing static
-Platoons X website. The public site keeps working exactly as before; whenever the
+ScaleForge website. The public site keeps working exactly as before; whenever the
 API is reachable, marketing sections become editable from the admin panel.
 
 - **Stack:** Node/Express + MySQL (`mysql2/promise`), JWT auth (bcrypt), multer uploads
@@ -104,7 +104,7 @@ DELETE /api/media/:id   🔒
 2. **Upload** the project (git or file manager). Ensure `node_modules` is installed (`npm install` via SSH, or Hostinger's Node setup).
 3. **Set environment variables** in hPanel → *Advanced → Node.js app* (or a `.env` file on a VPS). Use the MySQL details from step 1, a strong `JWT_SECRET`, and your `ADMIN_*` credentials. Set `FRONTEND_URL` to your domain(s).
 4. **Initialize the DB** once over SSH: `npm run db:init && npm run db:seed`.
-5. **Start command:** `npm start` (runs `backend/server.js`). On a VPS, use `pm2 start backend/server.js --name platoons`.
+5. **Start command:** `npm start` (runs `backend/server.js`). On a VPS, use `pm2 start backend/server.js --name scaleforge`.
 6. Visit `/admin`, log in, and you're live. The public site renders DB content automatically; if the DB is ever down, it falls back to the original static markup.
 
 > The legacy lead server is still available via `npm run start:legacy` (`server.js`) if you ever need just the old Google-Sheets proxy.

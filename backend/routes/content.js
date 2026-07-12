@@ -1,4 +1,4 @@
-// ─── Platoons X — Content routes ─────────────────────────────────────────────
+// ─── ScaleForge — Content routes ─────────────────────────────────────────────
 // Mounts every marketing content resource under /api. Simple resources use the
 // generic crudRouter; pricing, blog, and settings have bespoke routers.
 

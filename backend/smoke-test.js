@@ -1,4 +1,4 @@
-// ─── Platoons X — Live DB smoke test ─────────────────────────────────────────
+// ─── ScaleForge — Live DB smoke test ─────────────────────────────────────────
 // Exercises the full stack against a REAL database: init → seed → login →
 // CRUD → media upload → public read. Run after creating .env:
 //

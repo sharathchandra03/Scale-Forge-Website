@@ -1,4 +1,4 @@
-// ─── Platoons X — Server entrypoint ──────────────────────────────────────────
+// ─── ScaleForge — Server entrypoint ──────────────────────────────────────────
 // Serves the existing static site + admin panel and mounts the admin API.
 // Designed to be additive and crash-resistant:
 //   • routes are loaded defensively (one broken route won't take the server down)
@@ -12,6 +12,8 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +22,21 @@ const ROOT = path.join(__dirname, '..'); // project root (where index.html lives
 // ── Global crash net — never let one bad request kill the process ──
 process.on('uncaughtException', (err) => console.error('💥 uncaughtException:', err));
 process.on('unhandledRejection', (err) => console.error('💥 unhandledRejection:', err));
+
+// ── Security headers via helmet (relaxed for inline scripts/styles) ──
+app.use(helmet({
+  contentSecurityPolicy: false, // static site uses inline styles/scripts
+  crossOriginEmbedderPolicy: false, // needed for Spline 3D viewer
+}));
+
+// ── Rate limiting on auth endpoints (brute-force protection) ──
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 login attempts per window
+  message: { success: false, message: 'Too many login attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ── CORS — restricted to FRONTEND_URL in prod, open in dev ──
 const allowList = (process.env.FRONTEND_URL || '')
@@ -37,22 +54,23 @@ app.use(express.urlencoded({ extended: true }));
 
 // ── Health check — defined first so it works even if routes below fail ──
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'platoons-x', time: new Date().toISOString() });
+  res.json({ ok: true, service: 'scaleforge', time: new Date().toISOString() });
 });
 
 // ── Defensive route loader ──
-function mount(label, mountPath, modulePath, pick) {
+function mount(label, mountPath, modulePath, pick, middleware) {
   try {
     const mod = require(modulePath);
     const handler = pick ? pick(mod) : mod;
-    app.use(mountPath, handler);
+    if (middleware) app.use(mountPath, middleware, handler);
+    else app.use(mountPath, handler);
     console.log(`  ✓ mounted ${label} at ${mountPath}`);
   } catch (err) {
     console.error(`  ✗ FAILED to mount ${label} (${mountPath}):`, err.message);
   }
 }
 
-mount('auth',    '/api/auth',  './routes/auth', (m) => m.router);
+mount('auth',    '/api/auth',  './routes/auth', (m) => m.router, authLimiter);
 mount('leads',   '/api/leads', './routes/leads');
 mount('media',   '/api/media', './routes/media');
 mount('content', '/api',       './routes/content'); // services, pricing, blog, settings, …
@@ -147,7 +165,7 @@ async function boot() {
   }
 
   app.listen(PORT, () => {
-    console.log(`\n🚀 Platoons X server running at http://localhost:${PORT}`);
+    console.log(`\n🚀 ScaleForge server running at http://localhost:${PORT}`);
     console.log(`   Public site : http://localhost:${PORT}/`);
     console.log(`   Admin panel : http://localhost:${PORT}/admin`);
     console.log(`   Health      : http://localhost:${PORT}/api/health\n`);

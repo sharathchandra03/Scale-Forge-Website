@@ -1,4 +1,4 @@
-// ─── Platoons X — Database schema init ───────────────────────────────────────
+// ─── ScaleForge — Database schema init ───────────────────────────────────────
 // Idempotent: safe to run repeatedly. Creates every table IF NOT EXISTS and
 // uses ensureColumn() so new columns can be added later without data loss.
 //
@@ -32,7 +32,7 @@ const TS = `
 `;
 
 async function initDatabase() {
-  console.log('🗄️  Initializing Platoons X schema…');
+  console.log('🗄️  Initializing ScaleForge schema…');
 
   // ── admin_users ──
   await raw(`
@@ -210,7 +210,7 @@ async function initDatabase() {
       excerpt       VARCHAR(500),
       body          LONGTEXT,
       cover_media_id INT NULL,
-      author        VARCHAR(120) DEFAULT 'Platoons X',
+      author        VARCHAR(120) DEFAULT 'ScaleForge',
       category      VARCHAR(80),
       tags          JSON,
       status        ENUM('draft','published','scheduled') NOT NULL DEFAULT 'draft',

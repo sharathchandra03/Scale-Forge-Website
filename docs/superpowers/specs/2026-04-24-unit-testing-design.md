@@ -1,4 +1,4 @@
-# Unit Testing Design — S&C / Platoons X Website
+# Unit Testing Design — ScaleForge Website
 **Date:** 2026-04-24
 **Status:** Approved
 

@@ -1,4 +1,4 @@
-// ─── Platoons X — JWT auth middleware ────────────────────────────────────────
+// ─── ScaleForge — JWT auth middleware ────────────────────────────────────────
 // Protects all write/admin endpoints. Reads `Authorization: Bearer <token>`,
 // verifies it against JWT_SECRET, and attaches req.user on success.
 
