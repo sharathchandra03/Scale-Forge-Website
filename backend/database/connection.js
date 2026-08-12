@@ -17,8 +17,14 @@ function buildConfig() {
     dateStrings: true,
   };
 
+  // TiDB Cloud (and many hosted MySQL providers) require SSL.
+  // Enable automatically when DB_SSL=true or when using a known cloud port (4000).
+  const useSSL = process.env.DB_SSL === 'true' ||
+    Number(process.env.DB_PORT) === 4000;
+  const sslConfig = useSSL ? { ssl: { rejectUnauthorized: true } } : {};
+
   if (process.env.DATABASE_URL) {
-    return { uri: process.env.DATABASE_URL, ...common };
+    return { uri: process.env.DATABASE_URL, ...common, ...sslConfig };
   }
 
   return {
@@ -28,6 +34,7 @@ function buildConfig() {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'scaleforge',
     ...common,
+    ...sslConfig,
   };
 }
 
